@@ -6,9 +6,9 @@ class LexicalError(Exception):
 class IndentationError(Exception):
     pass
 
-# Definición de tokens para miniSQL
-
+# Tokens para miniSQL
 TOKEN_SPEC = [
+    # Palabras reservadas
     ('SELECT', r'\bSELECT\b'),
     ('FROM', r'\bFROM\b'),
     ('WHERE', r'\bWHERE\b'),
@@ -18,24 +18,55 @@ TOKEN_SPEC = [
     ('UPDATE', r'\bUPDATE\b'),
     ('SET', r'\bSET\b'),
     ('DELETE', r'\bDELETE\b'),
+    ('CREATE', r'\bCREATE\b'),
+    ('TABLE', r'\bTABLE\b'),
+    ('DROP', r'\bDROP\b'),
+    ('ALTER', r'\bALTER\b'),
+    ('JOIN', r'\bJOIN\b'),
+    ('ON', r'\bON\b'),
+    ('AND', r'\bAND\b'),
+    ('OR', r'\bOR\b'),
+    ('NOT', r'\bNOT\b'),
+    ('NULL', r'\bNULL\b'),
+    ('IN', r'\bIN\b'),
+    ('LIKE', r'\bLIKE\b'),
+    ('BETWEEN', r'\bBETWEEN\b'),
     ('FUNCTION', r'\bFUNCTION\b'),
     ('END', r'\bEND\b'),
+
+    # Operadores y símbolos
     ('COMMA', r','),
     ('SEMICOLON', r';'),
     ('LPAREN', r'\('),
     ('RPAREN', r'\)'),
+    ('DOT', r'\.'),
     ('EQ', r'='),
+    ('NE', r'<>|!='),
+    ('GE', r'>='),
+    ('LE', r'<='), 
     ('GT', r'>'),
     ('LT', r'<'),
-    ('GE', r'>='),
-    ('LE', r'<='),
-    ('NE', r'!='),
-    ('NUMBER', r'\b\d+\b'),
-    ('STRING', r"'[^']*'"),
+    ('PLUS', r'\+'),
+    ('MINUS', r'-'), 
+    ('TIMES', r'\*'),
+    ('DIVIDE', r'/'),
+
+    # Literales
+    ('NUMBER', r'\b\d+(\.\d+)?\b'),
+    ('STRING', r"'([^']*)'"),  # Puede mejorarse para cadenas no cerradas
+
+    # Comentarios
+    ('COMMENT_LINE', r'--.*'),
+    ('COMMENT_BLOCK', r'/\*[\s\S]*?\*/'),
+
+    # Identificadores
     ('IDENTIFIER', r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'),
-    ('NEWLINE', r'\n'),
-    ('SKIP', r'[ \t]+'),
-    ('UNKNOWN', r'.'),  # cualquier otro carácter inválido
+
+    # Espacios y saltos de línea
+    ('NEWLINE', r'\n'), ('SKIP', r'[ \t]+'),
+
+    # Cualquier otro carácter inválido
+    ('UNKNOWN', r'.'),
 ]
 
 TOKEN_REGEX = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPEC)
@@ -45,16 +76,13 @@ def check_indentation(lines):
     expected_indent = None
     for idx, line in enumerate(lines, 1):
         stripped = line.lstrip()
-        if not stripped or stripped.startswith('--'):  # Comentario o línea vacía
+        if not stripped or stripped.startswith('--'):
             continue
-
         indent = len(line) - len(stripped)
-
         if stripped.upper().startswith('FUNCTION '):
             inside_function = True
             expected_indent = indent + 4
             continue
-
         if inside_function:
             if indent < expected_indent and not stripped.upper().startswith('END'):
                 raise IndentationError(
@@ -81,10 +109,15 @@ def tokenize(code):
             line_num += 1
             line_start = mo.end()
             continue
-        elif kind == 'SKIP':
+        elif kind == 'SKIP' or kind.startswith('COMMENT'):
             continue
         elif kind == 'UNKNOWN':
-            raise LexicalError(f"Carácter inválido '{value}' en línea {line_num}")
+            raise LexicalError(f"Carácter inválido '{value}' en línea {line_num}, columna {column}")
+        elif kind == 'STRING':
+            if not value.endswith("'"):
+                raise LexicalError(f"Cadena sin cerrar en línea {line_num}, columna {column}")
+            value = value[1:-1]
+            tokens.append((kind, value, line_num, column))
         else:
             tokens.append((kind, value, line_num, column))
 

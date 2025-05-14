@@ -2,12 +2,8 @@ class SemanticError(Exception):
     pass
 
 class SemanticAnalyzer:
-    def __init__(self):
-        # Tabla de símbolos simulada
-        self.tables = {
-            'usuarios': ['nombre', 'edad', 'correo'],
-            'productos': ['id', 'nombre', 'precio']
-        }
+    def __init__(self, tables):
+        self.tables = tables
 
     def analyze(self, tokens):
         pos = 0
@@ -71,7 +67,6 @@ class SemanticAnalyzer:
         return self.skip_to_next_statement(tokens, pos)
 
     def skip_function(self, tokens, pos):
-        # Funciones pueden contener otras instrucciones, se salta END
         pos += 1
         while tokens[pos][0] != 'END':
             pos += 1
@@ -80,4 +75,4 @@ class SemanticAnalyzer:
     def skip_to_next_statement(self, tokens, pos):
         while pos < len(tokens) and tokens[pos][0] != 'SEMICOLON':
             pos += 1
-        return pos + 1  # Saltar el punto y coma
+        return pos + 1
