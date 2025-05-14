@@ -53,9 +53,15 @@ TOKEN_SPEC = [
 
     # Literales
     ('NUMBER', r'\b\d+(\.\d+)?\b'),
-    ('STRING', r"'([^']*)'"),  # Puede mejorarse para cadenas no cerradas
 
-    # Comentarios
+    # Cadenas entre comillas simples
+    ('STRING_SINGLE', r"'([^']*)'"),
+
+    # Cadenas entre comillas dobles
+    ('STRING_DOUBLE', r'"([^"]*)"'),
+
+  
+     # Comentarios
     ('COMMENT_LINE', r'--.*'),
     ('COMMENT_BLOCK', r'/\*[\s\S]*?\*/'),
 
@@ -67,6 +73,7 @@ TOKEN_SPEC = [
 
     # Cualquier otro carácter inválido
     ('UNKNOWN', r'.'),
+   
 ]
 
 TOKEN_REGEX = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPEC)
@@ -86,7 +93,7 @@ def check_indentation(lines):
         if inside_function:
             if indent < expected_indent and not stripped.upper().startswith('END'):
                 raise IndentationError(
-                    f"Error de indentación en línea {idx}: se esperaban al menos {expected_indent} espacios"
+                    f"Error de indentación en línea {idx}"
                 )
             if stripped.upper().startswith('END'):
                 inside_function = False
