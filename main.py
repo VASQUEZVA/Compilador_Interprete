@@ -19,6 +19,6 @@ try:
     parser.parse()  # Verificación sintáctica
     semantic = SemanticAnalyzer(db_schema)  # Corregido
     semantic.analyze(tokens)  # Verificación semántica
-    print("✔️ Análisis semántico correcto.")
+    print("Análisis semántico correcto.")
 except Exception as e:
-    print("❌ Error:", e)
+    print("Error:", e)
