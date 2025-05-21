@@ -26,6 +26,8 @@ class Parser:
                 self.parse_insert()
             elif token_type == 'FUNCTION':
                 self.parse_function()
+            elif token_type == 'EOF':
+                break
             else:
                 raise SyntaxError(f"Instrucción desconocida: {token_type}")
 
@@ -62,20 +64,64 @@ class Parser:
             self.match('COMMA')
             self.match('IDENTIFIER')
 
+    # def parse_value_list(self):
+    #     if self.current_token()[0] not in ('NUMBER', 'STRING'):
+    #         raise SyntaxError("Se esperaba un valor")
+    #     self.match(self.current_token()[0])
+    #     while self.current_token()[0] == 'COMMA':
+    #         self.match('COMMA')
+    #     if self.current_token()[0] not in ('NUMBER', 'STRING'):
+    #         raise SyntaxError("Se esperaba un valor después de la coma")
+    #     self.match(self.current_token()[0])
+
     def parse_value_list(self):
-        if self.current_token()[0] not in ('NUMBER', 'STRING'):
-            raise SyntaxError("Se esperaba un valor")
-        self.match(self.current_token()[0])
+        # Aquí puedes aceptar valores o expresiones aritméticas
+        self.parse_expression()
         while self.current_token()[0] == 'COMMA':
             self.match('COMMA')
-            self.match(self.current_token()[0])
+            self.parse_expression()
+
+    # def parse_condition(self):
+    #     self.match('IDENTIFIER')
+    #     op = self.current_token()[0]
+    #     if op not in ('EQ', 'GT', 'LT', 'GE', 'LE', 'NE'):
+    #         raise SyntaxError("Operador de comparación inválido")
+    #     self.match(op)
+    #     if self.current_token()[0] not in ('NUMBER', 'STRING', 'IDENTIFIER'):
+    #         raise SyntaxError("Valor de comparación inválido")
+    #     self.match(self.current_token()[0])
 
     def parse_condition(self):
-        self.match('IDENTIFIER')
+        self.parse_expression()  # lado izquierdo
         op = self.current_token()[0]
         if op not in ('EQ', 'GT', 'LT', 'GE', 'LE', 'NE'):
-            raise SyntaxError("Operador de comparación inválido")
+            raise SyntaxError(f"Operador de comparación inválido: {op}")
         self.match(op)
-        if self.current_token()[0] not in ('NUMBER', 'STRING', 'IDENTIFIER'):
-            raise SyntaxError("Valor de comparación inválido")
-        self.match(self.current_token()[0])
+        self.parse_expression()  # lado derecho
+
+    def parse_expression(self):
+        # parse_expression maneja términos y operadores aritméticos básicos (sin precedencia compleja)
+        self.parse_term()
+        while self.current_token()[0] in ('PLUS', 'MINUS'):
+            self.match(self.current_token()[0])
+            self.parse_term()
+
+    def parse_term(self):
+        # parse_term maneja factores y operadores multiplicativos
+        self.parse_factor()
+        while self.current_token()[0] in ('MUL', 'DIV'):
+            self.match(self.current_token()[0])
+            self.parse_factor()
+
+    def parse_factor(self):
+        token_type, value, line, col = self.current_token()
+        if token_type in ('IDENTIFIER', 'NUMBER','STRING'):
+            self.match(token_type)
+        elif token_type == 'LPAREN':
+            self.match('LPAREN')
+            self.parse_expression()
+            self.match('RPAREN')
+        else:
+            raise SyntaxError(f"Se esperaba IDENTIFIER, NUMBER o '(' en línea {line} pero se encontró '{value}'")
+
+    

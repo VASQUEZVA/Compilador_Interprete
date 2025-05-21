@@ -22,3 +22,7 @@ try:
     print("Análisis semántico correcto.")
 except Exception as e:
     print("Error:", e)
+
+    # for tok in tokens:
+    #     print(tok)
+
