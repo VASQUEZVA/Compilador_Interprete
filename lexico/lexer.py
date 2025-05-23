@@ -25,7 +25,7 @@ RESERVED_KEYWORDS = {
     'ASSIGN', 'NOT_EQ', 'AND_OP', 'OR_OP', 'LIKE_OP', 'BETWEEN_OP',
     'IN_OP', 'IS_OP', 'NOT_OP', 'NULL_OP', 'NUMBER', 'STRING',
     'COMMENT_LINE', 'COMMENT_BLOCK', 'IDENTIFIER', 'NEWLINE', 'SKIP',
-    'UNKNOWN', 'EOF'
+    'UNKNOWN', 'EOF','UPDATE', 'INSERT', 'DELETE', 'ALTER', 'JOIN',
 }
 
 # Tokens para miniSQL
@@ -109,6 +109,7 @@ TOKEN_SPEC = [
     ('RECURSIVE', r'\bRECURSIVE\b'),
     ('TABLESAMPLE', r'\bTABLESAMPLE\b'),
     ('TABLESAMPLE_SYSTEM', r'\bTABLESAMPLE SYSTEM\b'),
+   
 
 
     # Operadores y símbolos
@@ -127,7 +128,6 @@ TOKEN_SPEC = [
     ('MINUS', r'-'), 
     ('TIMES', r'\*'),
     ('DIVIDE', r'/'),
-    ('ASSIGN', r'='),
     ('NOT_EQ', r'<>|!='),
     ('OR_OP', r'OR'),
     ('LIKE_OP', r'LIKE'),
@@ -223,27 +223,4 @@ def tokenize(code):
     tokens.append(('EOF', '', line_num, 0))
 
     return tokens
-
-    # for mo in re.finditer(TOKEN_REGEX, code):
-    #     kind = mo.lastgroup
-    #     value = mo.group()
-    #     column = mo.start() - line_start
-
-    #     if kind == 'NEWLINE':
-    #         line_num += 1
-    #         line_start = mo.end()
-    #         continue
-    #     elif kind == 'SKIP' or kind.startswith('COMMENT'):
-    #         continue
-    #     elif kind == 'UNKNOWN':
-    #         raise LexicalError(f"Carácter inválido '{value}' en línea {line_num}, columna {column}")
-    #     elif kind == 'STRING':
-    #         if not value.endswith("'"):
-    #             raise LexicalError(f"Cadena sin cerrar en línea {line_num}, columna {column}")
-    #         value = value[1:-1]
-    #         tokens.append((kind, value, line_num, column))
-    #     else:
-    #         tokens.append((kind, value, line_num, column))
-
-    # return tokens
 

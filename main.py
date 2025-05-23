@@ -2,12 +2,16 @@ from lexico.lexer import tokenize
 from sintactico.parser import Parser
 from semantico.semantic_analyzer import SemanticAnalyzer  
 
-# Simulación de esquema de base de datos
+
 db_schema = {
-    'usuarios': ['nombre', 'edad', 'correo']
+
+    'usuarios': {
+        'nombre': 'VARCHAR',
+        'edad': 'INT',
+        'correo': 'VARCHAR'
+    }
 }
 
-# Simulación de código SQL para prueba
 
 with open("test.sql", encoding="utf-8") as f:
     code = f.read()
@@ -17,12 +21,13 @@ try:
     tokens = tokenize(code)
     parser = Parser(tokens)
     parser.parse()  # Verificación sintáctica
-    semantic = SemanticAnalyzer(db_schema)  # Corregido
+    semantic = SemanticAnalyzer(db_schema) # Inicialización del analizador semántico
     semantic.analyze(tokens)  # Verificación semántica
-    print("Análisis semántico correcto.")
+    print("Análisis completados con exito.")
 except Exception as e:
     print("Error:", e)
 
-    # for tok in tokens:
-    #     print(tok)
+print("Tokens generados:")
+for token in tokens:
+    print(token)
 

@@ -1,3 +1,9 @@
-SELECT nombre FROM usuarios WHERE salario = 3000;
+UPDATE empleados SET salario = 5000;
+
+
+
+
+
+
 
 

@@ -24,6 +24,8 @@ class Parser:
                 self.parse_select()
             elif token_type == 'INSERT':
                 self.parse_insert()
+            elif token_type == 'UPDATE':
+                self.parse_update()
             elif token_type == 'FUNCTION':
                 self.parse_function()
             elif token_type == 'EOF':
@@ -51,11 +53,32 @@ class Parser:
         self.match('RPAREN')
         self.match('SEMICOLON')
 
+    def parse_update(self):
+        self.match('UPDATE')
+        self.match('IDENTIFIER')
+        self.match('SET')
+        self.parse_set_list()
+        if self.current_token()[0] == 'WHERE':
+            self.match('WHERE')
+            self.parse_condition()
+        self.match('SEMICOLON')
+
+    def parse_set_list(self):
+        self.match('IDENTIFIER')   # columna
+        self.match('EQ')           # '='
+        self.parse_expression()    # valor
+
+        while self.current_token()[0] == 'COMMA':
+            self.match('COMMA')
+            self.match('IDENTIFIER')
+            self.match('EQ')
+            self.parse_expression()
+
     def parse_function(self):
         self.match('FUNCTION')
         self.match('IDENTIFIER')
         while self.current_token()[0] != 'END':
-            self.parse()  # Recurisve parse inside function
+            self.parse()  
         self.match('END')
 
     def parse_identifier_list(self):
@@ -64,15 +87,7 @@ class Parser:
             self.match('COMMA')
             self.match('IDENTIFIER')
 
-    # def parse_value_list(self):
-    #     if self.current_token()[0] not in ('NUMBER', 'STRING'):
-    #         raise SyntaxError("Se esperaba un valor")
-    #     self.match(self.current_token()[0])
-    #     while self.current_token()[0] == 'COMMA':
-    #         self.match('COMMA')
-    #     if self.current_token()[0] not in ('NUMBER', 'STRING'):
-    #         raise SyntaxError("Se esperaba un valor después de la coma")
-    #     self.match(self.current_token()[0])
+
 
     def parse_value_list(self):
         # Aquí puedes aceptar valores o expresiones aritméticas
@@ -81,16 +96,7 @@ class Parser:
             self.match('COMMA')
             self.parse_expression()
 
-    # def parse_condition(self):
-    #     self.match('IDENTIFIER')
-    #     op = self.current_token()[0]
-    #     if op not in ('EQ', 'GT', 'LT', 'GE', 'LE', 'NE'):
-    #         raise SyntaxError("Operador de comparación inválido")
-    #     self.match(op)
-    #     if self.current_token()[0] not in ('NUMBER', 'STRING', 'IDENTIFIER'):
-    #         raise SyntaxError("Valor de comparación inválido")
-    #     self.match(self.current_token()[0])
-
+   
     def parse_condition(self):
         self.parse_expression()  # lado izquierdo
         op = self.current_token()[0]
