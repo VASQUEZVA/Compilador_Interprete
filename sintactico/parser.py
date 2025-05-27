@@ -1,3 +1,9 @@
+# from typing import List, Tuple, Optional, Any, Dict
+from dataclasses import dataclass
+from enum import Enum
+import json
+from typing import List, Optional,Tuple, Any, Dict
+
 class SyntaxError(Exception):
     pass
 
@@ -27,6 +33,8 @@ class Parser:
             elif token_type == 'UPDATE':
                 self.parse_update()
             elif token_type == 'FUNCTION':
+                self.parse_function()
+            elif token_type == 'CREATE':
                 self.parse_function()
             elif token_type == 'EOF':
                 break
@@ -63,23 +71,47 @@ class Parser:
             self.parse_condition()
         self.match('SEMICOLON')
 
+  
+
     def parse_set_list(self):
         self.match('IDENTIFIER')   # columna
         self.match('EQ')           # '='
         self.parse_expression()    # valor
+       
 
         while self.current_token()[0] == 'COMMA':
             self.match('COMMA')
             self.match('IDENTIFIER')
             self.match('EQ')
             self.parse_expression()
-
+        
     def parse_function(self):
         self.match('FUNCTION')
         self.match('IDENTIFIER')
-        while self.current_token()[0] != 'END':
-            self.parse()  
-        self.match('END')
+        
+        while True:
+            token_type, *_ = self.current_token()
+            if token_type == 'END':
+                self.match('END')
+                break
+            elif token_type in {'SELECT', 'INSERT', 'UPDATE','CREATE'}:
+                self.parse_statement()
+            else:
+                raise SyntaxError(f"Token inesperado dentro de la función: {token_type}")
+
+    def parse_statement(self):
+        token_type, *_ = self.current_token()
+        if token_type == 'SELECT':
+            self.parse_select()
+        elif token_type == 'INSERT':
+            self.parse_insert()
+        elif token_type == 'UPDATE':
+            self.parse_update()
+        elif token_type == 'CREATE':
+            self.parse_update()
+        else:
+            raise SyntaxError(f"Instrucción desconocida: {token_type}")
+   
 
     def parse_identifier_list(self):
         self.match('IDENTIFIER')
@@ -90,7 +122,6 @@ class Parser:
 
 
     def parse_value_list(self):
-        # Aquí puedes aceptar valores o expresiones aritméticas
         self.parse_expression()
         while self.current_token()[0] == 'COMMA':
             self.match('COMMA')
@@ -98,15 +129,14 @@ class Parser:
 
    
     def parse_condition(self):
-        self.parse_expression()  # lado izquierdo
+        self.parse_expression()  
         op = self.current_token()[0]
         if op not in ('EQ', 'GT', 'LT', 'GE', 'LE', 'NE'):
             raise SyntaxError(f"Operador de comparación inválido: {op}")
         self.match(op)
-        self.parse_expression()  # lado derecho
+        self.parse_expression()  
 
     def parse_expression(self):
-        # parse_expression maneja términos y operadores aritméticos básicos (sin precedencia compleja)
         self.parse_term()
         while self.current_token()[0] in ('PLUS', 'MINUS'):
             self.match(self.current_token()[0])
@@ -130,17 +160,7 @@ class Parser:
         else:
             raise SyntaxError(f"Se esperaba IDENTIFIER, NUMBER o '(' en línea {line} pero se encontró '{value}'")
 
-
-'''
-
-# from typing import List, Tuple, Optional, Any, Dict
-from dataclasses import dataclass
-from enum import Enum
-import json
-
-# ============================================================================
 # DEFINICIÓN DE TOKENS Y AST
-# ============================================================================
 
 class TokenType(Enum):
     # SQL Keywords
@@ -614,9 +634,8 @@ class ImprovedParser:
         
         return ReturnStatement(value, token.line, token.column)
 
-    # ========================================================================
     # PARSING DE EXPRESIONES CON PRECEDENCIA
-    # ========================================================================
+  
 
     def parse_expression_list(self) -> List[Expression]:
         """Parsea una lista de expresiones separadas por comas"""
@@ -777,10 +796,8 @@ class ImprovedParser:
         else:
             raise UnexpectedTokenError("expresión", token)
 
-    # ========================================================================
     # UTILIDADES Y MANEJO DE ERRORES
-    # ========================================================================
-
+   
     def synchronize(self):
         """Busca el siguiente punto de sincronización después de un error"""
         self.pos += 1
@@ -820,50 +837,44 @@ class ImprovedParser:
         return serialize_node(node)
 
 # ============================================================================
-# EJEMPLO DE USO Y TESTING
-# ============================================================================
-
-def test_parser():
-    """Función de prueba para el parser"""
-    
-    # Tokens de ejemplo (normalmente vendrían de un lexer)
-    sample_tokens = [
-        ('SELECT', 'SELECT', 1, 1),
-        ('IDENTIFIER', 'nombre', 1, 8),
-        ('COMMA', ',', 1, 14),
-        ('IDENTIFIER', 'edad', 1, 16),
-        ('FROM', 'FROM', 1, 21),
-        ('IDENTIFIER', 'usuarios', 1, 26),
-        ('WHERE', 'WHERE', 1, 35),
-        ('IDENTIFIER', 'edad', 1, 41),
-        ('GT', '>', 1, 46),
-        ('NUMBER', '18', 1, 48),
-        ('SEMICOLON', ';', 1, 51),
+# def test_parser():
+       
+#     sample_tokens = [
+#         ('SELECT', 'SELECT', 1, 1),
+#         ('IDENTIFIER', 'nombre', 1, 8),
+#         ('COMMA', ',', 1, 14),
+#         ('IDENTIFIER', 'edad', 1, 16),
+#         ('FROM', 'FROM', 1, 21),
+#         ('IDENTIFIER', 'usuarios', 1, 26),
+#         ('WHERE', 'WHERE', 1, 35),
+#         ('IDENTIFIER', 'edad', 1, 41),
+#         ('GT', '>', 1, 46),
+#         ('NUMBER', '18', 1, 48),
+#         ('SEMICOLON', ';', 1, 51),
         
-        ('INSERT', 'INSERT', 2, 1),
-        ('INTO', 'INTO', 2, 8),
-        ('IDENTIFIER', 'productos', 2, 13),
-        ('VALUES', 'VALUES', 2, 23),
-        ('LPAREN', '(', 2, 30),
-        ('STRING', 'Laptop', 2, 31),
-        ('COMMA', ',', 2, 39),
-        ('NUMBER', '999.99', 2, 41),
-        ('RPAREN', ')', 2, 48),
-        ('SEMICOLON', ';', 2, 49),
-    ]
+#         ('INSERT', 'INSERT', 2, 1),
+#         ('INTO', 'INTO', 2, 8),
+#         ('IDENTIFIER', 'productos', 2, 13),
+#         ('VALUES', 'VALUES', 2, 23),
+#         ('LPAREN', '(', 2, 30),
+#         ('STRING', 'Laptop', 2, 31),
+#         ('COMMA', ',', 2, 39),
+#         ('NUMBER', '999.99', 2, 41),
+#         ('RPAREN', ')', 2, 48),
+#         ('SEMICOLON', ';', 2, 49),
+#     ]
     
-    parser = ImprovedParser(sample_tokens)
-    ast = parser.parse()
+#     parser = ImprovedParser(sample_tokens)
+#     ast = parser.parse()
     
-    if not parser.errors:
-        print(" Parsing exitoso!")
-        print("\n AST generado:")
-        ast_json = parser.get_ast_json(ast)
-        print(json.dumps(ast_json, indent=2, ensure_ascii=False))
-    else:
-        print("Errores encontrados durante el parsing")
+#     if not parser.errors:
+#         print(" Parsing exitoso!")
+#         print("\n AST generado:")
+#         ast_json = parser.get_ast_json(ast)
+#         print(json.dumps(ast_json, indent=2, ensure_ascii=False))
+#     else:
+#         print("Errores encontrados durante el parsing")
 
-if _name_ == "_main_":
-    test_parser() 
+# if __name__ == "_main_":
+#     test_parser() 
 
-    '''

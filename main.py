@@ -8,7 +8,9 @@ db_schema = {
     'usuarios': {
         'nombre': 'VARCHAR',
         'edad': 'INT',
-        'correo': 'VARCHAR'
+        'correo': 'VARCHAR',
+        'activo': 'BOOLEAN',
+        
     }
 }
 
@@ -23,11 +25,12 @@ try:
     parser.parse()  # Verificación sintáctica
     semantic = SemanticAnalyzer(db_schema) # Inicialización del analizador semántico
     semantic.analyze(tokens)  # Verificación semántica
-    print("Análisis completados con exito.")
+    print("Análisis (Lexico-Semantico-Sintactico) completados con exito.")
 except Exception as e:
     print("Error:", e)
 
-print("Tokens generados:")
-for token in tokens:
-    print(token)
+#print("Tokens generados:")
+#for token in tokens:
+    #print(token)
+ 
 

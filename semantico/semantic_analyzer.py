@@ -11,9 +11,6 @@ class SemanticAnalyzer:
         self.tables = tables
 
     def analyze(self, tokens):
-
-
-# Retorna: True si NO hay errores o  "SemanticError" Si lo hay.
         pos = 0
         while pos < len(tokens):
             token_type, value, *_ = tokens[pos]
@@ -126,7 +123,7 @@ class SemanticAnalyzer:
             if column_name not in self.tables[table_name]:
                 raise SemanticError(f"La columna '{column_name}' no existe en la tabla '{table_name}'")
             pos += 1
-            pos = self._expect_token(tokens, pos, 'EQUAL', "Falta '=' en la asignación de UPDATE")
+            pos = self._expect_token(tokens, pos, 'EQ', "Falta '=' en la asignación de UPDATE")
 
             value = tokens[pos][1]
             value_type = self.get_value_type(value)
